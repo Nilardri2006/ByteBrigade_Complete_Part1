@@ -3,7 +3,6 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
 import { TiLocationArrow } from "react-icons/ti";
 import { useEffect, useRef, useState } from "react";
-
 import Button from "./Button";
 import VideoPreview from "./VideoPreview";
 
@@ -12,34 +11,32 @@ gsap.registerPlugin(ScrollTrigger);
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [hasClicked, setHasClicked] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [loadedVideos, setLoadedVideos] = useState(0);
-
   const totalVideos = 4;
   const nextVdRef = useRef(null);
-
+  const currentVideoRef = useRef(null);
+  
   const handleVideoLoad = () => {
     setLoadedVideos((prev) => prev + 1);
   };
 
   useEffect(() => {
-    if (loadedVideos === totalVideos - 1) {
+    if (loadedVideos >= 3) {
       setLoading(false);
     }
   }, [loadedVideos]);
 
   const handleMiniVdClick = () => {
     setHasClicked(true);
-
     setCurrentIndex((prevIndex) => (prevIndex % totalVideos) + 1);
   };
 
   useGSAP(
     () => {
       if (hasClicked) {
-        gsap.set("#next-video", { visibility: "visible" });
-        gsap.to("#next-video", {
+        gsap.set(nextVdRef.current, { visibility: "visible" });
+        gsap.to(nextVdRef.current, {
           transformOrigin: "center center",
           scale: 1,
           width: "100%",
@@ -48,7 +45,7 @@ const Hero = () => {
           ease: "power1.inOut",
           onStart: () => nextVdRef.current.play(),
         });
-        gsap.from("#current-video", {
+        gsap.from(currentVideoRef.current, {
           transformOrigin: "center center",
           scale: 0,
           duration: 1.5,
@@ -56,10 +53,7 @@ const Hero = () => {
         });
       }
     },
-    {
-      dependencies: [currentIndex],
-      revertOnUpdate: true,
-    }
+    { dependencies: [currentIndex, hasClicked], revertOnUpdate: true }
   );
 
   useGSAP(() => {
@@ -67,7 +61,7 @@ const Hero = () => {
       clipPath: "polygon(14% 0, 72% 0, 88% 90%, 0 95%)",
       borderRadius: "0% 0% 40% 10%",
     });
-    gsap.from("#video-frame", {
+    gsap.to("#video-frame", {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
       borderRadius: "0% 0% 0% 0%",
       ease: "power1.inOut",
@@ -86,7 +80,6 @@ const Hero = () => {
     <div className="relative h-dvh w-screen overflow-x-hidden">
       {loading && (
         <div className="flex-center absolute z-[100] h-dvh w-screen overflow-hidden bg-violet-50">
-          {/* https://uiverse.io/G4b413l/tidy-walrus-92 */}
           <div className="three-body">
             <div className="three-body__dot"></div>
             <div className="three-body__dot"></div>
@@ -94,77 +87,33 @@ const Hero = () => {
           </div>
         </div>
       )}
-
-      <div
-        id="video-frame"
-        className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75"
-      >
+      <div id="video-frame" className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75">
         <div>
           <div className="mask-clip-path absolute-center absolute z-50 size-64 cursor-pointer overflow-hidden rounded-lg">
             <VideoPreview>
-              <div
-                onClick={handleMiniVdClick}
-                className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100"
-              >
-                <video
-                  ref={nextVdRef}
-                  src={getVideoSrc((currentIndex % totalVideos) + 1)}
-                  loop
-                  muted
-                  id="current-video"
-                  className="size-64 origin-center scale-150 object-cover object-center"
-                  onLoadedData={handleVideoLoad}
-                />
+              <div onClick={handleMiniVdClick} className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100">
+                <video ref={currentVideoRef} src={getVideoSrc((currentIndex % totalVideos) + 1)} loop muted autoPlay playsInline className="size-64 origin-center scale-150 object-cover object-center" onLoadedData={handleVideoLoad} />
               </div>
             </VideoPreview>
           </div>
-
-          <video
-            ref={nextVdRef}
-            src={getVideoSrc(currentIndex)}
-            loop
-            muted
-            id="next-video"
-            className="absolute-center invisible absolute z-20 size-64 object-cover object-center"
-            onLoadedData={handleVideoLoad}
-          />
-          <video
-            src={getVideoSrc(
-              currentIndex === totalVideos - 1 ? 1 : currentIndex
-            )}
-            autoPlay
-            loop
-            muted
-            className="absolute left-0 top-0 size-full object-cover object-center"
-            onLoadedData={handleVideoLoad}
-          />
+          <video ref={nextVdRef} src={getVideoSrc(currentIndex)} loop muted playsInline className="absolute-center invisible absolute z-20 size-64 object-cover object-center" onLoadedData={handleVideoLoad} />
+          <video src={getVideoSrc(currentIndex === 1 ? totalVideos : currentIndex - 1)} autoPlay loop muted playsInline className="absolute left-0 top-0 size-full object-cover object-center" onLoadedData={handleVideoLoad} />
         </div>
-
         <h1 className="special-font hero-heading absolute bottom-5 right-5 z-40 text-blue-75">
           T<b>E</b>am
         </h1>
-
         <div className="absolute left-0 top-0 z-40 size-full">
           <div className="mt-24 px-5 sm:px-10">
             <h1 className="special-font hero-heading text-blue-100">
               Byte  b<b>r</b>igade
             </h1>
-
             <p className="mb-5 max-w-64 font-robert-regular text-blue-100">
               Step into the mission <br /> innovate, build, and level up your dev game!
             </p>
-
-            <Button
-              id="Join-btn"
-              title="JOIN US"
-              href="https://chat.whatsapp.com/Cl4yEjjxume6wVOukUCcGP"
-              leftIcon={<TiLocationArrow />}
-              containerClass="bg-yellow-300 flex-center gap-1"
-            />
+            <Button id="Join-btn" title="JOIN US" href="https://chat.whatsapp.com/Cl4yEjjxume6wVOukUCcGP" leftIcon={<TiLocationArrow />} containerClass="bg-yellow-300 flex-center gap-1" />
           </div>
         </div>
       </div>
-
       <h1 className="special-font hero-heading absolute bottom-5 right-5 text-black">
         T<b>E</b>AM
       </h1>

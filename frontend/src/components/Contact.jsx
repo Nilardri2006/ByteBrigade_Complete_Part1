@@ -3,13 +3,13 @@ import Button from "./Button";
 
 const ImageClipBox = ({ src, clipClass }) => (
   <div className={clipClass}>
-    <img src={src} />
+    <img src={src} alt="" />
   </div>
 );
 
 const Contact = () => {
   return (
-    <div id="contact" className="my-20 min-h-96 w-screen  px-10">
+    <div id="contact" className="my-20 min-h-96 w-screen px-10">
       <div className="relative rounded-lg bg-black py-24 text-blue-50 sm:overflow-hidden">
         <div className="absolute -left-20 top-0 hidden h-full w-72 overflow-hidden sm:block lg:left-20 lg:w-96">
           <ImageClipBox
@@ -37,16 +37,15 @@ const Contact = () => {
           <p className="mb-10 font-general text-[10px] uppercase">
             Join ByteBrigade
           </p>
-
           <AnimatedTitle
             title="Let’s f<b>o</b>rge the <br /> next <b>g</b>eneration <br />of dev quests t<b>o</b>gether."
             className="special-font !md:text-[6.2rem] w-full font-zentry !text-5xl !font-black !leading-[.9]"
           />
-
           <Button
             title="contact us"
             href="https://chat.whatsapp.com/Cl4yEjjxume6wVOukUCcGP"
-            containerClass="mt-10 cursor-pointer" />
+            containerClass="mt-10 cursor-pointer" 
+          />
         </div>
       </div>
     </div>

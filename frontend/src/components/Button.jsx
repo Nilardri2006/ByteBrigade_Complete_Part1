@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-const Button = ({ id, title, rightIcon, leftIcon, containerClass,href }) => {
+const Button = ({ id, title, rightIcon, leftIcon, containerClass, href, onClick }) => {
   const handleClick = () => {
     if (href) {
       window.open(href, "_blank"); // open in new tab
@@ -8,18 +8,17 @@ const Button = ({ id, title, rightIcon, leftIcon, containerClass,href }) => {
       onClick();
     }
   };
+
   return (
     <button 
       id={id}
       className={clsx(
         "group relative z-10 w-fit cursor-pointer overflow-hidden rounded-full bg-violet-50 px-7 py-3 text-black",
         containerClass
-
       )}
       onClick={handleClick}
     >
       {leftIcon}
-
       <span className="relative inline-flex overflow-hidden font-general text-xs uppercase">
         <div className="translate-y-0 skew-y-0 transition duration-500 group-hover:translate-y-[-160%] group-hover:skew-y-12">
           {title}
@@ -28,7 +27,6 @@ const Button = ({ id, title, rightIcon, leftIcon, containerClass,href }) => {
           {title}
         </div>
       </span>
-
       {rightIcon}
     </button>
   );

@@ -7,7 +7,6 @@ const socialLinks = [
   { href: "https://chat.whatsapp.com/Cl4yEjjxume6wVOukUCcGP", icon: <FaWhatsapp /> },
 ];
 
-
 const Footer = () => {
   return (
     <footer className="w-screen bg-[#5542ff] py-4 text-black">
@@ -15,8 +14,7 @@ const Footer = () => {
         <p className="text-center text-sm font-light md:text-left">
           ©ByteBrigade 2025. All rights reserved
         </p>
-
-        <div className="flex justify-center gap-4  md:justify-start">
+        <div className="flex justify-center gap-4 md:justify-start">
           {socialLinks.map((link, index) => (
             <a
               key={index}
@@ -29,11 +27,7 @@ const Footer = () => {
             </a>
           ))}
         </div>
-
-        <a
-          href="#privacy-policy"
-          className="text-center text-sm font-light hover:underline md:text-right"
-        >
+        <a href="#privacy-policy" className="text-center text-sm font-light hover:underline md:text-right">
           Privacy Policy
         </a>
       </div>

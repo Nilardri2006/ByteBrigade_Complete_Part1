@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AnimatedTitle from "./AnimatedTitle";
+
 const testimonials = [
   {
     name: "Roney",
@@ -25,7 +26,6 @@ const testimonials = [
 export default function TestimonialSlider() {
   const [index, setIndex] = useState(0);
 
-  // Function to handle swipe
   const handleDragEnd = (event, info) => {
     if (info.offset.x < -100) {
       setIndex((prev) => (prev + 1) % testimonials.length);
@@ -35,13 +35,11 @@ export default function TestimonialSlider() {
   };
 
   return (
-      <div className="w-full max-w-4xl mx-auto py-10 px-4">
-        <AnimatedTitle
-              title="<b>V</b>ict<b>o</b>ry <br />  <b>V</b>oi<b>c</b>es"
-              containerClass="mt-5 !text-black text-center"
-            />
-      
-
+    <div className="w-full max-w-4xl mx-auto py-10 px-4">
+      <AnimatedTitle
+        title="<b>V</b>ict<b>o</b>ry <br />  <b>V</b>oi<b>c</b>es"
+        containerClass="mt-5 !text-black text-center"
+      />
       <div className="overflow-hidden relative mt-10">
         <AnimatePresence mode="wait">
           <motion.div
@@ -52,12 +50,7 @@ export default function TestimonialSlider() {
             initial={{ x: 400, opacity: 0, scale: 0.8, rotate: 5 }}
             animate={{ x: 0, opacity: 1, scale: 1, rotate: 0 }}
             exit={{ x: -400, opacity: 0, scale: 0.8, rotate: -5 }}
-            transition={{
-              type: "spring",
-              stiffness: 230,
-              damping: 15,
-              mass: 1.5,
-            }}
+            transition={{ type: "spring", stiffness: 230, damping: 15, mass: 1.5 }}
             className="bg-gradient-to-r from-blue-900 via-black to-green-800 rounded-xl p-6 md:p-8 text-white shadow-2xl flex flex-col items-center cursor-grab"
           >
             <img

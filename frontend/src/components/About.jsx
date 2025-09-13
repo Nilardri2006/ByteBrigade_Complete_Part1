@@ -1,7 +1,6 @@
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/all";
-
 import AnimatedTitle from "./AnimatedTitle";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -32,18 +31,16 @@ const About = () => {
         <p className="font-general text-sm uppercase md:text-[10px]">
           Welcome to Bytebrigade
         </p>
-
         <AnimatedTitle
           title="<b>D</b>iscover <br />the ultimate c<b>o<b/>ding <b>a</b>dvent<b>u</b>re for <b>d</b>evel<b>o</>pers"
           containerClass="mt-5 !text-black text-center"
         />
-
         <div className="about-subtext">
           <p className="text-gray-500">
-The Coding Adventure begins—your dev journey, now an epic MMORPG.          </p>
+            The Coding Adventure begins—your dev journey, now an epic MMORPG.
+          </p>
         </div>
       </div>
-
       <div className="h-dvh w-screen" id="clip">
         <div className="mask-clip-path about-image">
           <img
