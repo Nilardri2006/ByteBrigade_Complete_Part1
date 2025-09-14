@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
+import About from "./components/About";
+import { useState } from 'react';
 import HackathonTeamBuilder from './components/HackathonTeamBuilder';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import About from './components/About';
-import Features from './components/Features';
-import Story from './components/Story';
-import Feedback from './components/Feedback';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
+import Hero from "./components/Hero";
+import NavBar from "./components/Navbar";
+import Features from "./components/Features";
+import Story from "./components/Story";
+import Contact from "./components/Contact";
+import Footer from "./components/Footer";
+import Feedback from "./components/Feedback";
 import MyProfileManager from './components/MyProfileManager';
-import './App.css';
 
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import React from 'react'
+
+
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <div>Hello world!</div>,
+  },
+]);
 function App() {
   const [showTeamBuilder, setShowTeamBuilder] = useState(false);
   const [showProfileManager, setShowProfileManager] = useState(false);
@@ -67,18 +80,17 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <Navbar onNavigateToProfile={handleNavigateToProfile} />
+    <main className="relative min-h-screen w-screen overflow-x-hidden">
+      <NavBar onNavigateToProfile={handleNavigateToProfile} />
       <Hero />
-      <div id="wrapper" className="relative z-10 w-full overflow-hidden bg-violet-50">
-        <About />
-        <Features onFindSquaddies={handleNavigateToTeamBuilder} />
-        <Story />
-        <Feedback />
-        <Contact />
-        <Footer />
-      </div>
-    </div>
+      <div id="wrapper" className="relative z-10 w-full overflow-hidden bg-violet-50" />
+      <About />
+      <Features onFindSquaddies={handleNavigateToTeamBuilder} />
+      <Story />
+      <Feedback/>
+      <Contact />
+      <Footer />
+    </main>
   );
 }
 
