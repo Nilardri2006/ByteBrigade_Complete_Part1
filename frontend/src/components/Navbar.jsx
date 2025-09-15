@@ -2,22 +2,21 @@ import clsx from "clsx";
 import gsap from "gsap";
 import { useWindowScroll } from "react-use";
 import { useEffect, useRef, useState } from "react";
-import { User } from 'lucide-react';
+import { User, Volume2, VolumeX } from 'lucide-react';
 
 const navItems = ["Home", "About", "Features", "Feedback", "Contact"];
 
 const NavBar = ({ onNavigateToProfile }) => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [isIndicatorActive, setIsIndicatorActive] = useState(false);
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  
   const audioElementRef = useRef(null);
   const navContainerRef = useRef(null);
   const { y: currentScrollY } = useWindowScroll();
-  const [isNavVisible, setIsNavVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   const toggleAudioIndicator = () => {
     setIsAudioPlaying((prev) => !prev);
-    setIsIndicatorActive((prev) => !prev);
   };
 
   useEffect(() => {
@@ -33,13 +32,19 @@ const NavBar = ({ onNavigateToProfile }) => {
   useEffect(() => {
     if (currentScrollY === 0) {
       setIsNavVisible(true);
-      if (navContainerRef.current) navContainerRef.current.classList.remove("floating-nav");
+      if (navContainerRef.current) {
+        navContainerRef.current.classList.remove("floating-nav");
+      }
     } else if (currentScrollY > lastScrollY) {
       setIsNavVisible(false);
-      if (navContainerRef.current) navContainerRef.current.classList.add("floating-nav");
+      if (navContainerRef.current) {
+        navContainerRef.current.classList.add("floating-nav");
+      }
     } else if (currentScrollY < lastScrollY) {
       setIsNavVisible(true);
-      if (navContainerRef.current) navContainerRef.current.classList.add("floating-nav");
+      if (navContainerRef.current) {
+        navContainerRef.current.classList.add("floating-nav");
+      }
     }
     setLastScrollY(currentScrollY);
   }, [currentScrollY, lastScrollY]);
@@ -55,28 +60,70 @@ const NavBar = ({ onNavigateToProfile }) => {
   }, [isNavVisible]);
 
   return (
-    <div ref={navContainerRef} className="fixed inset-x-0 top-4 z-50 h-16 border-none transition-all duration-700 sm:inset-x-6">
+    <div
+      ref={navContainerRef}
+      className={clsx(
+        "fixed inset-x-0 top-4 z-50 h-16 border-none transition-all duration-700",
+        "sm:inset-x-6"
+      )}
+    >
       <header className="absolute top-1/2 w-full -translate-y-1/2">
         <nav className="flex size-full items-center justify-between p-4">
-          <div className="flex items-center gap-7">
-            <img src="/img/logo.png" alt="logo" className="w-20" />
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">BB</span>
+            </div>
+            <span className="text-xl font-bold text-white hidden sm:block">
+              ByteBrigade
+            </span>
           </div>
+
+          {/* Navigation Links */}
           <div className="flex h-full items-center">
-            <div className="hidden md:block">
+            <div className="ml-10 flex h-full items-center space-x-6">
               {navItems.map((item, index) => (
-                <a key={index} href={`#${item.toLowerCase()}`} className="nav-hover-btn">{item}</a>
+                <a
+                  key={index}
+                  href={`#${item.toLowerCase()}`}
+                  className="nav-hover-btn relative text-white transition-colors hover:text-blue-300"
+                >
+                  {item}
+                </a>
               ))}
             </div>
-            <button onClick={toggleAudioIndicator} className="ml-10 flex items-center space-x-0.5">
-              <audio ref={audioElementRef} className="hidden" src="/audio/loop.mp3" loop />
-              {[1, 2, 3, 4].map((bar) => (
-                <div key={bar} className={clsx("indicator-line", { active: isIndicatorActive })} style={{ animationDelay: `${bar * 0.1}s` }} />
-              ))}
+
+            {/* Audio Toggle */}
+            <button
+              onClick={toggleAudioIndicator}
+              className="ml-6 p-2 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-colors"
+            >
+              {isAudioPlaying ? (
+                <Volume2 className="w-5 h-5 text-white" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-white" />
+              )}
             </button>
-            <button onClick={onNavigateToProfile} className="profile-icon-btn ml-4 p-2 rounded-full hover:bg-white/20 transition-colors">
-              <User size={24} color="#fff" />
-            </button>
+
+            {/* Profile Button */}
+            {onNavigateToProfile && (
+              <button
+                onClick={onNavigateToProfile}
+                className="ml-4 flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-medium transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:block">Team Builder</span>
+              </button>
+            )}
           </div>
+
+          {/* Audio Element */}
+          <audio
+            ref={audioElementRef}
+            className="hidden"
+            src="/audio/loop.mp3"
+            loop
+          />
         </nav>
       </header>
     </div>
