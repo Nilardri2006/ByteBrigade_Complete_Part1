@@ -1,10 +1,47 @@
-# backend/api_views.py
+
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 from .models import User, Skill
 from .serializer import UserSerializer, SkillSerializer
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class LoginView(APIView):
+    """
+    Simple login endpoint
+    """
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response({
+                'error': 'Username and password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(username=username)
+            if user.check_password(password):
+                return Response({
+                    'message': 'Login successful',
+                    'user_id': user.id,
+                    'username': user.username,
+                    'name': user.name
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': 'Invalid credentials'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class UserListCreateView(generics.ListCreateAPIView):
@@ -68,13 +105,10 @@ class UserUpdateSkillsView(APIView):
 
         # Return updated user data
         serializer = UserSerializer(user)
-        return Response(
-            {
-                "message": "Skills updated successfully",
-                "user": serializer.data
-            },
-            status=status.HTTP_200_OK
-        )
+        return Response({
+            "message": "Skills updated successfully",
+            "user": serializer.data
+        }, status=status.HTTP_200_OK)
 
     def patch(self, request, user_id):
         """
@@ -95,38 +129,62 @@ class SkillDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class UserSearchView(APIView):
     """
-    Search users based on skills and filters
-
+    🔧 FIXED: Search users based on skills and filters
     """
 
     def get(self, request):
+        logger.info(f"🔍 Search request received with params: {request.query_params}")
+
         # Get query parameters
         skills_param = request.query_params.get('skills', '')
         include_beginner = request.query_params.get('include_beginner', 'true').lower() == 'true'
         team_size = request.query_params.get('team_size', '3')
 
+        logger.info(f"📋 Search criteria - Skills: {skills_param}, Include beginners: {include_beginner}")
+
         # Start with all users
         users = User.objects.all().prefetch_related("known_skills", "desired_skills", "my_skills")
+        initial_count = users.count()
+        logger.info(f"📊 Initial user count: {initial_count}")
 
-        # Filter by skills if provided
+        # 🔧 FIXED: Filter by skills if provided
         if skills_param:
             skill_list = [s.strip() for s in skills_param.split(',') if s.strip()]
-            # Create Q objects for each skill search across multiple skill fields
-            skill_queries = Q()
-            for skill in skill_list:
-                skill_queries |= (
-                        Q(known_skills__name__icontains=skill) |
-                        Q(my_skills__name__icontains=skill) |
-                        Q(desired_skills__name__icontains=skill)
-                )
-            users = users.filter(skill_queries).distinct()
+            logger.info(f"🎯 Searching for skills: {skill_list}")
+
+            if skill_list:  # Only filter if we have skills
+                # Create AND condition for each skill (user must have ALL skills)
+                for skill in skill_list:
+                    # Use exact match with case-insensitive lookup
+                    skill_query = Q(
+                        Q(known_skills__name__iexact=skill) |
+                        Q(my_skills__name__iexact=skill)
+                    )
+                    users = users.filter(skill_query).distinct()
+                    logger.info(f"🔍 After filtering for '{skill}': {users.count()} users")
 
         # Filter by beginner preference
         if not include_beginner:
             users = users.filter(is_beginner=False)
+            logger.info(f"🎓 After filtering beginners: {users.count()} users")
+
+        final_count = users.count()
+        logger.info(f"✅ Final search results: {final_count} users found")
 
         # Serialize and return
         serializer = UserSerializer(users, many=True)
+
+        # Add debug info to response
+        response_data = {
+            'results': serializer.data,
+            'count': final_count,
+            'debug': {
+                'initial_count': initial_count,
+                'search_skills': skills_param.split(',') if skills_param else [],
+                'include_beginner': include_beginner
+            }
+        }
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -140,8 +198,8 @@ class UserBySkillView(generics.ListAPIView):
         skill_name = self.request.query_params.get("skill", None)
         if skill_name:
             return User.objects.filter(
-                Q(my_skills__name__icontains=skill_name.strip()) |
-                Q(known_skills__name__icontains=skill_name.strip())
+                Q(my_skills__name__iexact=skill_name.strip()) |
+                Q(known_skills__name__iexact=skill_name.strip())
             ).distinct().prefetch_related("my_skills", "known_skills", "desired_skills")
         return User.objects.none()
 
@@ -153,3 +211,31 @@ class HealthCheckView(APIView):
 
     def get(self, request):
         return Response({"status": "healthy"}, status=status.HTTP_200_OK)
+
+
+# 🆕 ADDED: Debug endpoint to check skills
+class DebugSkillsView(APIView):
+    """
+    Debug endpoint to see all skills and users
+    """
+
+    def get(self, request):
+        all_skills = list(Skill.objects.all().values('id', 'name'))
+        all_users = list(User.objects.all().values('id', 'name', 'email'))
+
+        # Get users with their skills
+        users_with_skills = []
+        for user in User.objects.all().prefetch_related('known_skills'):
+            user_skills = [skill.name for skill in user.known_skills.all()]
+            users_with_skills.append({
+                'id': user.id,
+                'name': user.name,
+                'skills': user_skills
+            })
+
+        return Response({
+            'total_skills': len(all_skills),
+            'total_users': len(all_users),
+            'all_skills': all_skills,
+            'users_with_skills': users_with_skills
+        })

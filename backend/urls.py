@@ -1,9 +1,12 @@
-# backend/urls.py
+
 
 from django.urls import path
 from . import api_views
 
 urlpatterns = [
+    # Authentication
+    path("auth/login/", api_views.LoginView.as_view(), name="login"),
+
     # Users
     path("users/", api_views.UserListCreateView.as_view(), name="user-list-create"),
     path("users/<int:pk>/", api_views.UserDetailView.as_view(), name="user-detail"),
