@@ -14,7 +14,7 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
     knownSkills: [],
     desiredSkills: [],
     isBeginner: false,
-    hackathonExperiences: []
+    hackathonExperiences: []  // CORRECTED: Added hackathonExperiences
   });
   
   const [currentKnownSkill, setCurrentKnownSkill] = useState('');
@@ -22,13 +22,11 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
 
   useEffect(() => {
     if (editingProfile) {
-      console.log('📝 Loading profile for editing:', editingProfile);
+      console.log('🔍 ProfileForm DEBUG - Raw editing profile:', editingProfile);
       
-      // FIXED: Properly format skills to extract names from objects
       const formatSkills = (skillsArray) => {
         if (!Array.isArray(skillsArray)) return [];
         return skillsArray.map(skill => {
-          // Handle Django skill objects {id: 1, name: "JavaScript"}
           if (typeof skill === 'object' && skill !== null) {
             return skill.name || String(skill);
           }
@@ -36,7 +34,9 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
         });
       };
 
+      // CORRECTED: Format hackathon experiences properly
       const formatHackathonExperiences = (experiencesArray) => {
+        console.log('🔍 ProfileForm DEBUG - Raw hackathon experiences:', experiencesArray);
         if (!Array.isArray(experiencesArray)) return [];
         return experiencesArray.map(exp => ({
           organizer_name: exp.organizer_name || '',
@@ -46,10 +46,11 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
         }));
       };
 
-      setProfile({
+      // CORRECTED: Include ALL fields including college_name and hackathon_experiences
+      const formattedProfile = {
         name: editingProfile.name || '',
         email: editingProfile.email || '',
-        college: editingProfile.college_name || editingProfile.college || '',
+        college: editingProfile.college_name || editingProfile.college || '', // CORRECTED: Use college_name from API
         year: editingProfile.year ? String(editingProfile.year) : '',
         linkedin: editingProfile.linkedin_url || editingProfile.linkedin || '',
         github: editingProfile.github_url || editingProfile.github || '',
@@ -58,9 +59,13 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
         knownSkills: formatSkills(editingProfile.known_skills || editingProfile.knownSkills || []),
         desiredSkills: formatSkills(editingProfile.desired_skills || editingProfile.desiredSkills || []),
         hackathonExperiences: formatHackathonExperiences(editingProfile.hackathon_experiences || editingProfile.hackathonExperiences || [])
-      });
+      };
 
-      console.log('✅ Profile formatted successfully');
+      console.log('🔍 ProfileForm DEBUG - Formatted profile for editing:', formattedProfile);
+      console.log('🔍 ProfileForm DEBUG - College field specifically:', formattedProfile.college);
+      console.log('🔍 ProfileForm DEBUG - Hackathon experiences specifically:', formattedProfile.hackathonExperiences);
+      
+      setProfile(formattedProfile);
     }
   }, [editingProfile]);
 
@@ -68,6 +73,8 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
     if (!e || !e.target) return;
     
     const { name, value, type, checked } = e.target;
+    console.log(`🔍 ProfileForm DEBUG - Field change: ${name} = ${type === 'checkbox' ? checked : value}`);
+    
     setProfile(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -78,12 +85,13 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
     const skillName = skill.trim();
     if (!skillName || profile[type].includes(skillName)) return;
     
+    console.log(`🔍 ProfileForm DEBUG - Adding ${type} skill: ${skillName}`);
+    
     setProfile(prev => ({
       ...prev,
       [type]: [...prev[type], skillName]
     }));
     
-    // Clear the input after adding
     if (type === 'knownSkills') {
       setCurrentKnownSkill('');
     } else {
@@ -92,13 +100,14 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
   };
 
   const removeSkill = (index, type) => {
+    console.log(`🔍 ProfileForm DEBUG - Removing ${type} skill at index ${index}`);
+    
     setProfile(prev => ({
       ...prev,
       [type]: prev[type].filter((_, i) => i !== index)
     }));
   };
 
-  // FIXED: Separate handlers for each skill type
   const handleKnownSkillChange = (e) => {
     if (e && e.target && typeof e.target.value === 'string') {
       setCurrentKnownSkill(e.target.value);
@@ -119,8 +128,9 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
     addSkill(currentDesiredSkill, 'desiredSkills');
   };
 
-  // Hackathon experience functions
+  // CORRECTED: Hackathon experience functions with proper logging
   const addHackathonExperience = () => {
+    console.log('🔍 ProfileForm DEBUG - Adding new hackathon experience');
     setProfile(prev => ({
       ...prev,
       hackathonExperiences: [
@@ -136,6 +146,7 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
   };
 
   const removeHackathonExperience = (index) => {
+    console.log(`🔍 ProfileForm DEBUG - Removing hackathon experience at index: ${index}`);
     setProfile(prev => ({
       ...prev,
       hackathonExperiences: prev.hackathonExperiences.filter((_, i) => i !== index)
@@ -143,6 +154,7 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
   };
 
   const updateHackathonExperience = (index, field, value) => {
+    console.log(`🔍 ProfileForm DEBUG - Updating hackathon experience [${index}].${field} = ${value}`);
     setProfile(prev => ({
       ...prev,
       hackathonExperiences: prev.hackathonExperiences.map((exp, i) =>
@@ -159,16 +171,38 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
       return;
     }
 
-    console.log('📤 Submitting profile:', profile);
+    console.log('🔍 ProfileForm DEBUG - Submitting profile:', profile);
+    console.log('🔍 ProfileForm DEBUG - College field being submitted:', profile.college);
+    console.log('🔍 ProfileForm DEBUG - Hackathon experiences being submitted:', profile.hackathonExperiences);
 
-    if (onSubmit) {
-      await onSubmit(profile);
+    // CORRECTED: Ensure data is properly formatted for backend
+    const submissionData = {
+      ...profile,
+      // Filter out empty hackathon experiences
+      hackathonExperiences: profile.hackathonExperiences.filter(exp => 
+        exp.organizer_name.trim() && exp.hackathon_name.trim()
+      )
+    };
+
+    console.log('🔍 ProfileForm DEBUG - Final submission data:', submissionData);
+    console.log('🔍 ProfileForm DEBUG - Final college field:', submissionData.college);
+
+    try {
+      if (editingProfile && onUpdate) {
+        await onUpdate(submissionData);
+      } else if (onSubmit) {
+        await onSubmit(submissionData);
+      }
+    } catch (error) {
+      console.error('🔍 ProfileForm DEBUG - Submission error:', error);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
+        
+        
         {/* Basic Information */}
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
@@ -221,6 +255,9 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter your college name"
               />
+              <div className="mt-1 text-xs text-gray-500">
+                Current value: "{profile.college}"
+              </div>
             </div>
             
             <div>
@@ -317,7 +354,7 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
           </div>
         </div>
 
-        {/* Skills Section - FIXED */}
+        {/* Skills Section */}
         <div className="bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills</h3>
           
@@ -351,7 +388,7 @@ const ProfileForm = ({ onSubmit, onUpdate = null, editingProfile = null, loading
           </div>
         </div>
 
-        {/* Past Experiences in Hackathons */}
+        {/* CORRECTED: Hackathon Experiences Section */}
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Past Experiences in Hackathons</h3>
