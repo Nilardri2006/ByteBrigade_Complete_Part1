@@ -1,5 +1,4 @@
 
-
 from rest_framework import serializers
 from .models import User, Skill, HackathonExperience
 
@@ -14,11 +13,13 @@ class HackathonExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = HackathonExperience
         fields = ["id", "organizer_name", "hackathon_name", "description", "achievements", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        extra_kwargs = {
+            'created_at': {'read_only': True}
+        }
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # Authentication fields
+    # CORRECTED: Make username/password optional for updates
     username = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True, required=False, min_length=6)
 
@@ -26,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
     skills = serializers.CharField(write_only=True, required=False)
     my_skills = SkillSerializer(many=True, read_only=True)
 
-    # For frontend compatibility
+    # Frontend compatibility fields
     knownSkills = serializers.ListField(
         child=serializers.CharField(), write_only=True, required=False
     )
@@ -36,23 +37,25 @@ class UserSerializer(serializers.ModelSerializer):
     known_skills = SkillSerializer(many=True, read_only=True)
     desired_skills = SkillSerializer(many=True, read_only=True)
 
-    # Hackathon experiences
-    hackathon_experiences = HackathonExperienceSerializer(many=True, read_only=True)
-    hackathonExperiences = serializers.ListField(
-        child=serializers.DictField(), write_only=True, required=False
-    )
-
-    # Social links for frontend compatibility
+    # Social links mapping
     linkedin = serializers.URLField(write_only=True, required=False, allow_blank=True)
     github = serializers.URLField(write_only=True, required=False, allow_blank=True)
-
-    # Read-only social links
     linkedin_url = serializers.URLField(read_only=True)
     github_url = serializers.URLField(read_only=True)
+
+    # CORRECTED: College field mapping
+    college = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    college_name = serializers.CharField(read_only=True)
 
     # Beginner field
     isBeginner = serializers.BooleanField(write_only=True, required=False)
     is_beginner = serializers.BooleanField(read_only=True)
+
+    # Hackathon experiences
+    hackathonExperiences = serializers.ListField(
+        child=serializers.DictField(), write_only=True, required=False
+    )
+    hackathon_experiences = HackathonExperienceSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -60,9 +63,9 @@ class UserSerializer(serializers.ModelSerializer):
             "id", "username", "password", "name", "college_name", "year", "email",
             "gender", "skills", "my_skills",
             "linkedin_url", "github_url", "is_beginner",
-            "known_skills", "desired_skills", "hackathon_experiences", "created_at", "updated_at",
-            # write-only fields for frontend compatibility
-            "knownSkills", "desiredSkills", "linkedin", "github", "isBeginner", "hackathonExperiences"
+            "known_skills", "desired_skills", "created_at", "updated_at",
+            "knownSkills", "desiredSkills", "linkedin", "github", "college", "isBeginner",
+            "hackathonExperiences", "hackathon_experiences"
         ]
         extra_kwargs = {
             'created_at': {'read_only': True},
@@ -70,35 +73,44 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
-        # Set required fields based on operation type
-        if self.instance is None:  # Creating new user
-            self.fields['username'].required = True
-            self.fields['password'].required = True
-        else:  # Updating existing user
+
+        # If this is an update operation make fields optional
+        if self.instance:
+            print(" SERIALIZER DEBUG - Update mode: making username/password optional")
             self.fields['username'].required = False
             self.fields['password'].required = False
+        else:
+            print(" SERIALIZER DEBUG - Create mode: username/password required")
+            self.fields['username'].required = True
+            self.fields['password'].required = True
 
     def validate_username(self, value):
-        # Check if username already exists during creation
-        if self.instance is None:  # Creating new user
-            if User.objects.filter(username=value).exists():
-                raise serializers.ValidationError("A user with this username already exists.")
+        # Only validate uniqueness if username is being changed
+        if self.instance and self.instance.username == value:
+            return value
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
         return value
 
     def validate_email(self, value):
-        # Allow same email for same user during updates
-        if self.instance is None:  # Creating new user
-            if User.objects.filter(email=value).exists():
-                raise serializers.ValidationError("A user with this email already exists.")
-        else:  # Updating existing user
-            # Allow same email for the same user, but check for other users
-            existing_user = User.objects.filter(email=value).exclude(id=self.instance.id).first()
-            if existing_user:
-                raise serializers.ValidationError("Another user with this email already exists.")
+        # Only validate uniqueness if email is being changed
+        if self.instance and self.instance.email == value:
+            return value
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
         return value
 
     def create(self, validated_data):
+        print(" SERIALIZER DEBUG - Creating user with data:", validated_data)
+
+        # Username and password are required for creation
+        if not validated_data.get('username'):
+            raise serializers.ValidationError({"username": "Username is required for user creation."})
+        if not validated_data.get('password'):
+            raise serializers.ValidationError({"password": "Password is required for user creation."})
+
         # Extract password
         password = validated_data.pop('password')
 
@@ -106,16 +118,21 @@ class UserSerializer(serializers.ModelSerializer):
         skills_text = validated_data.pop("skills", "")
         known_skills_list = validated_data.pop("knownSkills", [])
         desired_skills_list = validated_data.pop("desiredSkills", [])
+
+        # Handle hackathon experiences with detailed logging
         hackathon_experiences_list = validated_data.pop("hackathonExperiences", [])
+        print(f" SERIALIZER DEBUG - Hackathon experiences received: {hackathon_experiences_list}")
+
+        # Handle college field mapping
+        college = validated_data.pop("college", None)
+        if college:
+            validated_data["college_name"] = college.strip()
+            print(f" SERIALIZER DEBUG - College mapped: {college} -> {validated_data['college_name']}")
 
         # Handle social links
         linkedin = validated_data.pop("linkedin", None)
         github = validated_data.pop("github", None)
         is_beginner = validated_data.pop("isBeginner", False)
-
-        # Handle college name and year
-        college_name = validated_data.pop("college", None)
-        year = validated_data.pop("year", None)
 
         if linkedin:
             validated_data["linkedin_url"] = linkedin
@@ -123,15 +140,14 @@ class UserSerializer(serializers.ModelSerializer):
             validated_data["github_url"] = github
         validated_data["is_beginner"] = is_beginner
 
-        if college_name:
-            validated_data["college_name"] = college_name
-        if year:
-            validated_data["year"] = year
+        print(f" SERIALIZER DEBUG - Final validated_data before user creation: {validated_data}")
 
         # Create user
         user = User.objects.create(**validated_data)
         user.set_password(password)
         user.save()
+
+        print(f" SERIALIZER DEBUG - User created with ID: {user.id}")
 
         # Handle backward compatibility skills
         if skills_text:
@@ -145,7 +161,7 @@ class UserSerializer(serializers.ModelSerializer):
             if skill_name.strip():
                 skill, _ = Skill.objects.get_or_create(name=skill_name.strip().capitalize())
                 user.known_skills.add(skill)
-                user.my_skills.add(skill)
+                user.my_skills.add(skill)  # Also add to my_skills for backward compatibility
 
         # Handle desired skills
         for skill_name in desired_skills_list:
@@ -153,44 +169,63 @@ class UserSerializer(serializers.ModelSerializer):
                 skill, _ = Skill.objects.get_or_create(name=skill_name.strip().capitalize())
                 user.desired_skills.add(skill)
 
-        # Handle hackathon experiences
+        # CORRECTED: Handle hackathon experiences
+        experiences_created = 0
         for exp_data in hackathon_experiences_list:
-            if exp_data.get('hackathon_name') and exp_data.get('organizer_name'):
-                HackathonExperience.objects.create(
+            print(f" SERIALIZER DEBUG - Processing experience: {exp_data}")
+
+            organizer = exp_data.get('organizer_name', '').strip()
+            hackathon = exp_data.get('hackathon_name', '').strip()
+
+            if organizer and hackathon:
+                experience = HackathonExperience.objects.create(
                     user=user,
-                    organizer_name=exp_data.get('organizer_name', ''),
-                    hackathon_name=exp_data.get('hackathon_name', ''),
-                    description=exp_data.get('description', ''),
-                    achievements=exp_data.get('achievements', '')
+                    organizer_name=organizer,
+                    hackathon_name=hackathon,
+                    description=exp_data.get('description', '').strip(),
+                    achievements=exp_data.get('achievements', '').strip()
                 )
+                experiences_created += 1
+                print(f" SERIALIZER DEBUG - Created experience ID: {experience.id}")
+            else:
+                print(
+                    f" SERIALIZER DEBUG - Skipped experience due to missing required fields: organizer='{organizer}', hackathon='{hackathon}'")
+
+        print(f" SERIALIZER DEBUG - Created {experiences_created} hackathon experiences for user {user.id}")
 
         return user
 
     def update(self, instance, validated_data):
-        # Don't allow username/password changes in update
-        validated_data.pop('username', None)
-        validated_data.pop('password', None)
+        print(f" SERIALIZER DEBUG - Updating user {instance.id} with data: {validated_data}")
 
-        # Handle skill input formats for updates
+        #Don't require username/password for updates
+        validated_data.pop('username', None)  # Remove username from updates
+        password = validated_data.pop('password', None)  # Only update password if provided
+
+        # Handle hackathon experiences update
+        hackathon_experiences_list = validated_data.pop("hackathonExperiences", None)
+
+        # Handle college field mapping for updates
+        college = validated_data.pop("college", None)
+        if college is not None:
+            print(f" SERIALIZER DEBUG - Setting college_name to: '{college}'")
+            instance.college_name = college.strip() if college and college.strip() else None
+
+        # Handle skills
         known_skills_list = validated_data.pop("knownSkills", None)
         desired_skills_list = validated_data.pop("desiredSkills", None)
-        hackathon_experiences_list = validated_data.pop("hackathonExperiences", None)
+
+        # Update basic fields only if provided
+        for field in ['name', 'email', 'year', 'gender']:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+                print(f"SERIALIZER DEBUG - Updated {field}: {validated_data[field]}")
 
         # Handle social links
         linkedin = validated_data.pop("linkedin", None)
         github = validated_data.pop("github", None)
         is_beginner = validated_data.pop("isBeginner", None)
 
-        # Handle college name and year
-        college_name = validated_data.pop("college", None)
-        year = validated_data.pop("year", None)
-
-        # Update fields from the frontend
-        instance.name = validated_data.get('name', instance.name)
-        instance.email = validated_data.get('email', instance.email)
-        instance.gender = validated_data.get('gender', instance.gender)
-
-        # Handle social links
         if linkedin is not None:
             instance.linkedin_url = linkedin
         if github is not None:
@@ -198,13 +233,13 @@ class UserSerializer(serializers.ModelSerializer):
         if is_beginner is not None:
             instance.is_beginner = is_beginner
 
-        # Handle college and year
-        if college_name is not None:
-            instance.college_name = college_name
-        if year is not None:
-            instance.year = year
+        #Only update password if provided
+        if password:
+            instance.set_password(password)
+            print(" SERIALIZER DEBUG - Password updated")
 
         instance.save()
+        print(f" SERIALIZER DEBUG - User {instance.id} saved with college_name: '{instance.college_name}'")
 
         # Update skills if provided
         if known_skills_list is not None:
@@ -223,20 +258,30 @@ class UserSerializer(serializers.ModelSerializer):
                     skill, _ = Skill.objects.get_or_create(name=skill_name.strip().capitalize())
                     instance.desired_skills.add(skill)
 
-        # Update hackathon experiences if provided
+        # Update hackathon experiences
         if hackathon_experiences_list is not None:
+            print(f" SERIALIZER DEBUG - Updating hackathon experiences: {hackathon_experiences_list}")
+
             # Clear existing experiences
             instance.hackathon_experiences.all().delete()
 
             # Add new experiences
+            experiences_created = 0
             for exp_data in hackathon_experiences_list:
-                if exp_data.get('hackathon_name') and exp_data.get('organizer_name'):
-                    HackathonExperience.objects.create(
+                organizer = exp_data.get('organizer_name', '').strip()
+                hackathon = exp_data.get('hackathon_name', '').strip()
+
+                if organizer and hackathon:
+                    experience = HackathonExperience.objects.create(
                         user=instance,
-                        organizer_name=exp_data.get('organizer_name', ''),
-                        hackathon_name=exp_data.get('hackathon_name', ''),
-                        description=exp_data.get('description', ''),
-                        achievements=exp_data.get('achievements', '')
+                        organizer_name=organizer,
+                        hackathon_name=hackathon,
+                        description=exp_data.get('description', '').strip(),
+                        achievements=exp_data.get('achievements', '').strip()
                     )
+                    experiences_created += 1
+                    print(f" SERIALIZER DEBUG - Updated experience ID: {experience.id}")
+
+            print(f" SERIALIZER DEBUG - Updated {experiences_created} hackathon experiences for user {instance.id}")
 
         return instance
