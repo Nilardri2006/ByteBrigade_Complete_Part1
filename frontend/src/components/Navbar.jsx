@@ -10,7 +10,7 @@ const NavBar = ({ onNavigateToProfile }) => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  
+
   const audioElementRef = useRef(null);
   const navContainerRef = useRef(null);
   const { y: currentScrollY } = useWindowScroll();
@@ -70,9 +70,10 @@ const NavBar = ({ onNavigateToProfile }) => {
       <header className="absolute top-1/2 w-full -translate-y-1/2">
         <nav className="flex size-full items-center justify-between p-4">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">BB</span>
+          <div id =" home" className="flex items-center gap-3">
+            <div className="flex items-center justify-center">
+              <img src="/img/logo.png" alt="Logo" className="w-20 h-20 object-contain" />
+
             </div>
             <span className="text-xl font-bold text-white hidden sm:block">
               ByteBrigade

@@ -35,7 +35,7 @@ export default function TestimonialSlider() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-10 px-4">
+    <div id = "feedback" className="w-full max-w-4xl mx-auto py-10 px-4">
       <AnimatedTitle
         title="<b>V</b>ict<b>o</b>ry <br />  <b>V</b>oi<b>c</b>es"
         containerClass="mt-5 !text-white text-center"

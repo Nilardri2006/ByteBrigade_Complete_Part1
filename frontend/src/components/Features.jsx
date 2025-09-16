@@ -77,7 +77,7 @@ export const BentoCard = ({ src, title, description, isComingSoon, squaddies, qu
 };
 
 const Features = ({ onFindSquaddies }) => (
-  <section className="bg-black pb-52">
+  <section  className="bg-black pb-52">
     <div className="container mx-auto px-3 md:px-10">
       <div className="px-5 py-32">
         <p className="font-circular-web text-lg text-blue-50">Lore</p>
@@ -85,11 +85,13 @@ const Features = ({ onFindSquaddies }) => (
           Gear up, join forces, and level up your coding journey with collaborative challenges!
         </p>
       </div>
-      <BentoTilt className="border-hsla relative mb-7 h-96 w-full overflow-hidden rounded-md md:h-[65vh]">
+      <div id="about">
+      <BentoTilt  className="border-hsla relative mb-7 h-96 w-full overflow-hidden rounded-md md:h-[65vh]">
         <BentoCard src="videos/feature-1.mp4" title={<>Abo<b>u</b>t</>} description="Byte Brigade is a community-driven platform where tech enthusiasts, coders, and innovators discover hackathons, collaborate on projects, gain mentorship, and showcase their skills—turning ideas into real-world solutions." isComingSoon />
       </BentoTilt>
-      <div className="grid h-auto w-full grid-cols-1 gap-7 md:h-[135vh] md:grid-cols-2 md:grid-rows-3">
-        <BentoTilt className="bento-tilt_1 h-96 md:h-auto md:row-span-1 md:col-span-1 md:row-span-2">
+      </div>
+      <div id = "features" className="grid h-auto w-full grid-cols-1 gap-7 md:h-[135vh] md:grid-cols-2 md:grid-rows-3">
+        <BentoTilt className="bento-tilt_1 h-96 md:h-auto md:row-span-1 md:col-span-1">
           <BentoCard src="videos/feature-2.mp4" title={<>Are<b>n</b>a</>} description="Enter the arena, equip your skills, and rise as a coding legend!" profile onFindSquaddies={onFindSquaddies} />
         </BentoTilt>
         <BentoTilt className="bento-tilt_1 h-96 md:h-auto md:row-span-1 md:col-span-1">
