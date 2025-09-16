@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = "https://byte-brigade.onrender.com/api/";
+
 
 const handleResponse = async (response) => {
   console.log(`API Response Status: ${response.status} ${response.statusText}`);
