@@ -1,5 +1,5 @@
 const API_BASE = "https://byte-brigade.onrender.com";
-fetch(`${API_BASE}/api/...`)
+fetch(`${API_BASE}/api/endpoint`)
 
 
 const handleResponse = async (response) => {
