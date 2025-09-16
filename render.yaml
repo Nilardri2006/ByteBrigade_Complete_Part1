@@ -1,0 +1,25 @@
+# render.yaml
+services:
+  - type: web
+    name: byte-brigade
+    env: python
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+
+    # install step (you probably have Requirements.txt)
+    buildCommand: "pip install -r Requirements.txt"
+
+    # update this to match your Django project package that contains wsgi.py
+    startCommand: "gunicorn ByteBrigade_Backend.wsgi:application --bind 0.0.0.0:$PORT"
+
+    # this runs once *before* the web process starts on each deploy
+    releaseCommand: >
+      python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput || true &&
+      python manage.py createsuperuser --noinput || true
+
+    envVars:
+      - key: DATABASE_URL
+        sync: false
