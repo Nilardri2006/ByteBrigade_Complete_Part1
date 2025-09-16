@@ -236,13 +236,13 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
   // Authentication screen (keep the authentication JSX the same as before...)
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mb-6">
               <User className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
+            <h2 className="text-3xl font-extrabold text-neutral-400 mb-2">
               {authMode === 'login' ? 'Welcome to ByteBrigade' : 'Join ByteBrigade'}
             </h2>
             <p className="text-sm text-gray-600">
@@ -300,7 +300,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
                   disabled={authLoading}
                   className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200 font-medium transform hover:scale-[1.02]"
                 >
-                  {authLoading ? 'Signing in...' : 'Sign In 🚀'}
+                  {authLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
             ) : (

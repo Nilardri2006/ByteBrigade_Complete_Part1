@@ -6,7 +6,7 @@ const testimonials = [
   {
     name: "Roney",
     role: "Full-Stack Developer",
-    message: "Byte Brigade helped me find amazing teammates and crush hackathons! 🚀",
+    message: "Byte Brigade helped me find amazing teammates and crush hackathons! ",
     avatar: "https://static.vecteezy.com/system/resources/previews/059/467/716/non_2x/gamer-avatar-with-headphones-and-glasses-white-background-vector.jpg"
   },
   {
@@ -38,7 +38,7 @@ export default function TestimonialSlider() {
     <div className="w-full max-w-4xl mx-auto py-10 px-4">
       <AnimatedTitle
         title="<b>V</b>ict<b>o</b>ry <br />  <b>V</b>oi<b>c</b>es"
-        containerClass="mt-5 !text-black text-center"
+        containerClass="mt-5 !text-white text-center"
       />
       <div className="overflow-hidden relative mt-10">
         <AnimatePresence mode="wait">
