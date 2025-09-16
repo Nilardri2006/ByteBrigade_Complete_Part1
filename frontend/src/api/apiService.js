@@ -103,6 +103,63 @@ const formatYearField = (year) => {
 };
 
 const apiService = {
+  
+  createUser: async (userData) => {
+    try {
+      console.log('Creating user with data:', userData);
+      
+      const requestData = {
+        username: userData.username,
+        password: userData.password,
+        name: userData.name,
+        email: userData.email
+      };
+      
+      logRequest('POST', `${API_BASE_URL}/users/`, requestData);
+      
+      const response = await fetch(`${API_BASE_URL}/users/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      const result = await handleResponse(response);
+      console.log('User created successfully:', result);
+      return result;
+      
+    } catch (error) {
+      console.error(' Error creating user:', error);
+      throw error;
+    }
+  },
+
+  // 🔧 FIXED: Login function to match your backend endpoint
+  login: async (credentials) => {
+    try {
+      console.log(' Logging in user:', credentials.username);
+      
+      const response = await fetch(`${API_BASE_URL}/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+      });
+
+      const result = await handleResponse(response);
+      console.log(' Login successful:', result);
+      return result;
+      
+    } catch (error) {
+      console.error(' Login error:', error);
+      throw error;
+    }
+  },
+
   getAllProfiles: async () => {
     try {
       logRequest('GET', `${API_BASE_URL}/users/`);
@@ -304,56 +361,59 @@ const apiService = {
     }
   },
 
-  searchProfiles: async (criteria) => {
-    try {
-      const params = new URLSearchParams();
-      
-      if (criteria.requiredSkills && Array.isArray(criteria.requiredSkills) && criteria.requiredSkills.length > 0) {
-        params.append('skills', criteria.requiredSkills.join(','));
-      }
-      
-      if (criteria.teamSize && criteria.teamSize.toString().trim()) {
-        params.append('team_size', criteria.teamSize.toString());
-      }
-      
-      if (criteria.includeBeginner !== undefined) {
-        params.append('include_beginner', criteria.includeBeginner.toString());
-      }
-      
-      const queryString = params.toString();
-      const searchUrl = `${API_BASE_URL}/search/users/${queryString ? '?' + queryString : ''}`;
-      
-      logRequest('GET', searchUrl);
-      
-      const response = await fetch(searchUrl, {
-        method: 'GET',
-        headers: { 
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const result = await handleResponse(response);
-      console.log(`Search completed: ${result.length} profiles found`);
-      
-      if (result.length > 0) {
-        const experiencedCount = result.filter(profile => 
-          profile.hackathon_experiences && profile.hackathon_experiences.length > 0
-        ).length;
-        console.log(`Search Results: ${result.length} total, ${experiencedCount} with hackathon experience`);
-        
-        const withCollegeCount = result.filter(profile => 
-          profile.college_name && profile.college_name.trim()
-        ).length;
-        console.log(`College Info: ${withCollegeCount} profiles have college information`);
-      }
-      
-      return result;
-    } catch (error) {
-      console.error("Error searching profiles:", error.message);
-      throw error;
+  
+searchProfiles: async (criteria) => {
+  try {
+    const params = new URLSearchParams();
+    
+    if (criteria.requiredSkills && Array.isArray(criteria.requiredSkills) && criteria.requiredSkills.length > 0) {
+      params.append('skills', criteria.requiredSkills.join(','));
     }
-  },
+    
+    if (criteria.teamSize && criteria.teamSize.toString().trim()) {
+      params.append('team_size', criteria.teamSize.toString());
+    }
+    
+    if (criteria.includeBeginner !== undefined) {
+      params.append('include_beginner', criteria.includeBeginner.toString());
+    }
+    
+    const queryString = params.toString();
+    
+    const searchUrl = `${API_BASE_URL}/search/${queryString ? '?' + queryString : ''}`;
+    
+    logRequest('GET', searchUrl);
+    
+    const response = await fetch(searchUrl, {
+      method: 'GET',
+      headers: { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const result = await handleResponse(response);
+    console.log(`Search completed: ${result.length} profiles found`);
+    
+    if (result.length > 0) {
+      const experiencedCount = result.filter(profile => 
+        profile.hackathon_experiences && profile.hackathon_experiences.length > 0
+      ).length;
+      console.log(`Search Results: ${result.length} total, ${experiencedCount} with hackathon experience`);
+      
+      const withCollegeCount = result.filter(profile => 
+        profile.college_name && profile.college_name.trim()
+      ).length;
+      console.log(`College Info: ${withCollegeCount} profiles have college information`);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("Error searching profiles:", error.message);
+    throw error;
+  }
+},
+
 
   getUsersBySkill: async (skillName) => {
     try {
@@ -422,30 +482,6 @@ const apiService = {
       return result;
     } catch (error) {
       console.error("Error fetching skills:", error.message);
-      throw error;
-    }
-  },
-
-  login: async (username, password) => {
-    try {
-      const requestData = { username, password };
-      
-      logRequest('POST', `${API_BASE_URL}/auth/login/`, { username: username });
-      
-      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(requestData)
-      });
-      
-      const result = await handleResponse(response);
-      console.log(`Login successful for user: ${result.username}`);
-      return result;
-    } catch (error) {
-      console.error("Login failed:", error.message);
       throw error;
     }
   },
@@ -527,9 +563,11 @@ const apiService = {
   }
 };
 
-if (process.env.NODE_ENV === 'development') {
-  window.apiService = apiService;
-  console.log('apiService is available in window.apiService for debugging');
+if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+  if (typeof window !== 'undefined') {
+    window.apiService = apiService;
+    console.log('apiService is available in window.apiService for debugging');
+  }
 }
 
 export default apiService;

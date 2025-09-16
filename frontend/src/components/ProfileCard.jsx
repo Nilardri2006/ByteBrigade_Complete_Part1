@@ -1,8 +1,8 @@
 import React from 'react';
-import { FaEnvelope, FaGithub, FaLinkedin, FaTrophy, FaCalendar, FaUsers, FaMedal } from 'react-icons/fa';
+import { FaEnvelope, FaGithub, FaLinkedin, FaTrophy, FaCalendar, FaUsers, FaMedal, FaEye } from 'react-icons/fa';
 import SkillTag from './SkillTag';
 
-const ProfileCard = ({ profile }) => {
+const ProfileCard = ({ profile, onViewProfile = null }) => {
   if (!profile) {
     return null;
   }
@@ -21,8 +21,32 @@ const ProfileCard = ({ profile }) => {
     return 'th';
   };
 
+  //  Handle profile viewing
+  const handleCardClick = () => {
+    if (onViewProfile) {
+      onViewProfile(profile);
+    }
+  };
+
+  const handleViewButtonClick = (e) => {
+    e.stopPropagation();
+    if (onViewProfile) {
+      onViewProfile(profile);
+    }
+  };
+
+  // Stop propagation for links
+  const handleLinkClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300">
+    <div 
+      className={`bg-white rounded-lg shadow-lg border border-gray-200 p-6 transition-all duration-300 ${
+        onViewProfile ? 'cursor-pointer hover:shadow-xl hover:scale-[1.02] hover:border-blue-300' : 'hover:shadow-xl'
+      }`}
+      onClick={handleCardClick}
+    >
       {/* Header Section */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -59,6 +83,7 @@ const ProfileCard = ({ profile }) => {
               href={profile.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleLinkClick}
               className="flex items-center text-blue-600 hover:text-blue-800 text-sm transition-colors"
             >
               <FaLinkedin className="w-4 h-4 mr-1" />
@@ -71,6 +96,7 @@ const ProfileCard = ({ profile }) => {
               href={profile.github_url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleLinkClick}
               className="flex items-center text-gray-700 hover:text-gray-900 text-sm transition-colors"
             >
               <FaGithub className="w-4 h-4 mr-1" />
@@ -130,7 +156,7 @@ const ProfileCard = ({ profile }) => {
         </div>
       )}
 
-      {/* NEW: Hackathon Experiences Section */}
+      {/* Hackathon Experiences Section */}
       {hackathonExperiences.length > 0 && (
         <div className="mb-4">
           <div className="flex items-center mb-3">
@@ -204,12 +230,30 @@ const ProfileCard = ({ profile }) => {
         </div>
       )}
 
-      {/* Connect Button */}
+      {/* Action Buttons */}
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm font-medium flex items-center justify-center space-x-2">
-          <FaEnvelope className="w-4 h-4" />
-          <span>Connect for Team Up</span>
-        </button>
+        {/* NEW: Conditional rendering based on onViewProfile prop */}
+        {onViewProfile ? (
+          <div className="space-y-2">
+            {/* View Profile Button */}
+            <button 
+              onClick={handleViewButtonClick}
+              className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-2 px-4 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-200 text-sm font-medium flex items-center justify-center space-x-2"
+            >
+              <FaEye className="w-4 h-4" />
+              <span>View Full Profile</span>
+            </button>
+            
+            {/* Connect Button */}
+            
+          </div>
+        ) : (
+          /* Original Connect Button (for backward compatibility) */
+          <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm font-medium flex items-center justify-center space-x-2">
+            <FaEnvelope className="w-4 h-4" />
+            <span>Connect for Team Up</span>
+          </button>
+        )}
       </div>
 
       {/* Quick Stats */}
@@ -231,6 +275,15 @@ const ProfileCard = ({ profile }) => {
           </span>
         )}
       </div>
+
+      
+      {onViewProfile && (
+        <div className="mt-2 text-center">
+          <span className="text-xs text-gray-400 italic">
+            Click anywhere on card to view profile
+          </span>
+        </div>
+      )}
     </div>
   );
 };

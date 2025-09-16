@@ -4,6 +4,7 @@ import NavigationTabs from './NavigationTabs';
 import ProfileForm from './ProfileForm';
 import SearchForm from './SearchForm';
 import SearchResults from './SearchResults';
+import ViewProfile from './ViewProfile'; 
 import apiService from '../api/apiService';
 import './HackathonTeamBuilder.css';
 import { ArrowLeft, User, Lock, UserPlus, LogOut, AlertCircle } from 'lucide-react';
@@ -29,6 +30,10 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
   const [userProfile, setUserProfile] = useState(null);
   const [profileExists, setProfileExists] = useState(false);
 
+  // NEW: Add states for profile viewing
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showViewProfile, setShowViewProfile] = useState(false);
+
   // Check if user is logged in from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
@@ -53,7 +58,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
       setLoading(true);
       const existingProfile = await apiService.getProfileById(userId);
       if (existingProfile) {
-        console.log('✅ Existing profile found:', existingProfile);
+        console.log('Existing profile found:', existingProfile);
         setUserProfile(existingProfile);
         
         // Check if profile has required fields filled
@@ -63,15 +68,15 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
         if (hasBasicInfo && hasSkills) {
           setProfileExists(true);
           setActiveTab('search');
-          console.log('📋 Profile is complete, redirecting to search');
+          console.log(' Profile is complete, redirecting to search');
         } else {
           setProfileExists(false);
           setActiveTab('profile');
-          console.log('📝 Profile incomplete, showing profile form');
+          console.log(' Profile incomplete, showing profile form');
         }
       }
     } catch (err) {
-      console.log('🆕 No existing profile found, showing creation form');
+      console.log('No existing profile found, showing creation form');
       setProfileExists(false);
       setActiveTab('profile');
     } finally {
@@ -85,6 +90,17 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
       setActiveTab(initialTab);
     }
   }, [initialTab, profileExists]);
+
+  // NEW: Add profile viewing handlers
+  const handleViewProfile = (profile) => {
+    setSelectedProfile(profile);
+    setShowViewProfile(true);
+  };
+
+  const handleCloseViewProfile = () => {
+    setSelectedProfile(null);
+    setShowViewProfile(false);
+  };
 
   // Authentication functions
   const handleLogin = async (e) => {
@@ -162,6 +178,9 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
     setSearchResults([]);
     setHasSearched(false);
     setError(null);
+    // NEW: Clear view profile state on logout
+    setSelectedProfile(null);
+    setShowViewProfile(false);
     localStorage.removeItem('currentUser');
   };
 
@@ -175,7 +194,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
     setLoading(true);
     setError(null);
     try {
-      console.log('🔄 Updating user profile for:', currentUser.id);
+      console.log(' Updating user profile for:', currentUser.id);
       
       // Use updateUserProfile instead of createProfile
       const updatedProfile = await apiService.updateUserProfile(currentUser.id, profileData);
@@ -193,7 +212,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
       alert(message);
       
     } catch (err) {
-      console.error('❌ Profile submission error:', err);
+      console.error(' Profile submission error:', err);
       setError('Failed to save profile. Please check your information and try again.');
     } finally {
       setLoading(false);
@@ -205,12 +224,12 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
     setHasSearched(true);
     setError(null);
     try {
-      console.log('🔍 Searching with criteria:', searchCriteria);
+      console.log(' Searching with criteria:', searchCriteria);
       const results = await apiService.searchProfiles(searchCriteria);
-      console.log('✅ Search results:', results);
+      console.log(' Search results:', results);
       setSearchResults(results);
     } catch (err) {
-      console.error('❌ Search failed:', err);
+      console.error(' Search failed:', err);
       setError('Failed to search. Please try again.');
       setSearchResults([]);
     } finally {
@@ -232,6 +251,16 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
       setSearchResults([]);
     }
   };
+
+  // NEW: Show ViewProfile if selected
+  if (showViewProfile && selectedProfile) {
+    return (
+      <ViewProfile 
+        profile={selectedProfile}
+        onClose={handleCloseViewProfile}
+      />
+    );
+  }
 
   // Authentication screen (keep the authentication JSX the same as before...)
   if (!isLoggedIn) {
@@ -408,7 +437,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
     );
   }
 
-  // Main app when logged in (rest of the component stays the same...)
+  // Main app when logged in 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Clean Header with user info */}
@@ -523,6 +552,7 @@ const HackathonTeamBuilder = ({ onProfileCreated, currentUserId, onNavigateBack,
                 allProfiles={[]}
                 hasSearched={hasSearched}
                 onCreateProfile={() => setActiveTab('profile')}
+                onViewProfile={handleViewProfile} 
                 loading={loading}
               />
             </div>

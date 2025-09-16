@@ -39,7 +39,7 @@ const NavigationTabs = ({ activeTab, onTabChange, availableTabs = ['profile', 's
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-200
                 ${isActive 
-                  ? `bg-${tab.color}-500 text-white shadow-sm` 
+                  ? `bg-blue-600 text-white shadow-sm` 
                   : `text-gray-600 hover:text-gray-900 hover:bg-gray-50`
                 }
               `}
