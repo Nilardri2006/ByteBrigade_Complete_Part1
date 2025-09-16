@@ -121,13 +121,17 @@ WSGI_APPLICATION = 'ByteBrigade_Backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 import os
-import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("DATABASE_URL")
-    )
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'bytebrigade_db',  # same as your Atlas DB name
+        'CLIENT': {
+            'host': os.environ.get("MONGO_URL"),  # URI from Atlas
+        }
+    }
 }
+
 
 
 
