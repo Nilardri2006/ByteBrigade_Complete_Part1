@@ -31,10 +31,9 @@ DEBUG = True
 
 # CORS Configuration for development
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Your React development server
-    "http://127.0.0.1:5173",  # Alternative localhost format
-    "http://localhost:3000",  # Common React port
+    "https://bytebrigade.vercel.app",
 ]
+
 
 # Allow credentials to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
