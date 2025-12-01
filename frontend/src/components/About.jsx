@@ -26,14 +26,14 @@ const About = () => {
   });
 
   return (
-    <div id="about" className="min-h-screen w-screen">
+    <div className="min-h-screen w-screen">
       <div className="relative mb-8 mt-36 flex flex-col items-center gap-5">
-        <p className="font-general text-sm uppercase md:text-[10px]">
+        <p className="font-general text-sm uppercase md:text-[10px] text-gray-500">
           Welcome to Bytebrigade
         </p>
         <AnimatedTitle
           title="<b>D</b>iscover <br />the ultimate c<b>o<b/>ding <b>a</b>dvent<b>u</b>re for <b>d</b>evel<b>o</>pers"
-          containerClass="mt-5 !text-black text-center"
+          containerClass="mt-5 !text-white text-center"
         />
         <div className="about-subtext">
           <p className="text-gray-500">

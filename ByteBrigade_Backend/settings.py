@@ -31,10 +31,9 @@ DEBUG = True
 
 # CORS Configuration for development
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Your React development server
-    "http://127.0.0.1:5173",  # Alternative localhost format
-    "http://localhost:3000",  # Common React port
+    "https://bytebrigade.vercel.app",
 ]
+
 
 # Allow credentials to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
@@ -93,6 +92,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://bytebrigade.vercel.app",
+]
+
+
 ROOT_URLCONF = 'ByteBrigade_Backend.urls'
 
 TEMPLATES = [
@@ -116,12 +120,19 @@ WSGI_APPLICATION = 'ByteBrigade_Backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': 'bytebrigade_db',  # same as your Atlas DB name
+        'CLIENT': {
+            'host': os.environ.get("MONGO_URL"),  # URI from Atlas
+        }
     }
 }
+
+
 
 
 # Password validation

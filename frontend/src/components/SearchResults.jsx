@@ -1,62 +1,98 @@
 import React from 'react';
-import { Users, Loader } from 'lucide-react';
+import { Users, Loader, Search, UserPlus } from 'lucide-react';
 import ProfileCard from './ProfileCard';
 import './HackathonTeamBuilder.css';
 
-const SearchResults = ({ searchResults, allProfiles, hasSearched, onCreateProfile, loading = false }) => {
-    if (loading) {
-        return (
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-                <Loader style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} size={48} />
-                <p>Searching for teammates...</p>
-            </div>
-        );
-    }
-
-    if (hasSearched) {
-        if (searchResults.length > 0) {
-            return (
-                <div className="search-results">
-                    <div className="results-header">
-                        <h2 className="results-title">Found {searchResults.length} potential teammate{searchResults.length !== 1 ? 's' : ''}</h2>
-                    </div>
-                    <div className="results-grid">
-                        {searchResults.map(profile => <ProfileCard key={profile.id} profile={profile} />)}
-                    </div>
-                </div>
-            );
-        } else {
-            return (
-                <div className="no-results">
-                    <Users size={64} className="no-results-icon" />
-                    <h3>No teammates found</h3>
-                    <p>Try adjusting your search criteria or check back later for new profiles.</p>
-                </div>
-            );
-        }
-    }
-
-    if (allProfiles && allProfiles.length > 0) {
-        return (
-            <div className="search-results">
-                <div className="results-header">
-                    <h2 className="results-title">All Developer Profiles ({allProfiles.length})</h2>
-                </div>
-                <div className="results-grid">
-                    {allProfiles.map(profile => <ProfileCard key={profile.id} profile={profile} />)}
-                </div>
-            </div>
-        );
-    }
-
+const SearchResults = ({ 
+  searchResults, 
+  allProfiles, 
+  hasSearched, 
+  onCreateProfile, 
+  onViewProfile = null, // Default to null for backward compatibility
+  loading = false 
+}) => {
+  if (loading) {
     return (
-        <div className="no-results">
-            <Users size={64} className="no-results-icon" />
-            <h3>No profiles yet</h3>
-            <p>Be the first to create a developer profile and find your squad!</p>
-            <button className="create-profile-button" onClick={onCreateProfile}>Create Your Profile</button>
-        </div>
+      <div className="search-results-loading">
+        <Loader className="loading-spinner" size={40} />
+        <h3>Searching for teammates...</h3>
+        <p>Finding the perfect match for your project</p>
+      </div>
     );
+  }
+
+  if (hasSearched && searchResults.length === 0) {
+    return (
+      <div className="search-results-empty">
+        <Search size={48} color="#9ca3af" />
+        <h3>No teammates found</h3>
+        <p>Try adjusting your search criteria or check back later for new profiles.</p>
+      </div>
+    );
+  }
+
+  if (hasSearched && searchResults.length > 0) {
+    return (
+      <div className="search-results-container">
+        <div className="search-results-header">
+          <Users size={24} />
+          <h3>
+            Found {searchResults.length} potential teammate{searchResults.length !== 1 ? 's' : ''} matching your criteria
+          </h3>
+        </div>
+        
+        <div className="profiles-grid">
+          {searchResults.map((profile, index) => (
+            <ProfileCard 
+              key={profile.id || index} 
+              profile={profile}
+              onViewProfile={onViewProfile}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="search-results-initial">
+      <div className="search-instruction">
+        <Search size={48} color="#667eea" />
+        <h3>Find Your Perfect Teammates</h3>
+        <p>Use the search form above to find teammates with the skills you need.</p>
+        
+        {allProfiles && allProfiles.length > 0 && (
+          <>
+            <div className="divider">
+              <span>Or browse all {allProfiles.length} available profiles:</span>
+            </div>
+            <div className="profiles-grid">
+              {allProfiles.slice(0, 6).map((profile, index) => (
+                <ProfileCard 
+                  key={profile.id || index} 
+                  profile={profile}
+                  onViewProfile={onViewProfile}
+                />
+              ))}
+            </div>
+            {allProfiles.length > 6 && (
+              <p className="more-profiles-hint">
+                And {allProfiles.length - 6} more profiles available...
+              </p>
+            )}
+          </>
+        )}
+        
+        {(!allProfiles || allProfiles.length === 0) && (
+          <div className="no-profiles-yet">
+            <UserPlus size={32} color="#9ca3af" />
+            <p></p>
+            
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default SearchResults;
